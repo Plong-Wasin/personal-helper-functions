@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert json to sql</title>
+</head>
+
+<body>
+    <label for="jsonInput">JSON or Text with , or new line:</label>
+    <textarea id="jsonInput"
+        style="width: 98%; height: 200px; font-size: 16px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);"></textarea>
+    <label for="sqlOutput">SQL Output:</label>
+    <textarea id="sqlOutput" readonly
+        style="width: 98%; height: 200px; font-size: 16px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);"></textarea>
+    <button id="copyButton" onclick="copyText()"
+        style="background-color: #4CAF50; color: white; padding: 12px 24px; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s;">
+        Copy
+    </button>
+
+    <script>
+        const jsonInput = document.querySelector('#jsonInput');
+        const sqlOutput = document.querySelector('#sqlOutput');
+        jsonInput.addEventListener('input', () => {
+            const inputValue = jsonInput.value;
+            const hasNewline = inputValue.includes('\n');
+            const hasJsonLikeSyntax = inputValue.includes('{') && inputValue.includes('}') ||
+                inputValue.includes('[') && inputValue.includes(']');
+
+            try {
+                if (hasJsonLikeSyntax) {
+                    const jsonArray = JSON.parse(inputValue);
+                    if (Array.isArray(jsonArray)) {
+                        const sqlInClause = `(${jsonArray.map(item => typeof item === 'string' ? item.replace(/'/g, "''") : item).map(item => `'${item}'`).join(', ')})`;
+                        sqlOutput.value = sqlInClause;
+                    } else {
+                        sqlOutput.value = 'Input is not a valid JSON array';
+                    }
+                } else {
+                    const inputArray = inputValue.split(hasNewline ? '\n' : ',');
+                    const sqlInClause = `(${inputArray.map(item => item.trim().replace(/'/g, "''")).map(item => `'${item}'`).join(', ')})`;
+                    sqlOutput.value = sqlInClause;
+                }
+            } catch (e) {
+                sqlOutput.value = 'Invalid JSON input';
+            }
+        });
+
+        function copyText() {
+            sqlOutput.select();
+            document.execCommand('copy');
+        }
+
+    </script>
+</body>
+
+</html>
